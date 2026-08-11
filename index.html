@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ruta Térmica — bcb Ingeniería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0E13; --panel:#141A22; --panel2:#1C242F; --line:#2B3542;
+  --txt:#E6EBF2; --dim:#8A97A8;
+  --ok:#23C08A; --watch:#F2B233; --crit:#FF4E2B;
+  --iron:linear-gradient(90deg,#000010 0%,#3A0F6B 22%,#B8267A 45%,#FF6A00 68%,#FFC300 86%,#FFF6D8 100%);
+  --disp:"Barlow Condensed",'Roboto Condensed',system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Courier New",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:var(--body)}
+body{padding-bottom:96px;font-size:16px;line-height:1.45}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+:focus-visible{outline:2px solid #FF6A00;outline-offset:2px}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:20;background:rgba(11,14,19,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:baseline;gap:10px;padding:14px 16px 8px}
+.brand{font-family:var(--disp);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.route{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:.01em;line-height:1;margin-right:auto}
+.count{font-family:var(--mono);font-size:13px;color:var(--dim)}
+.progress{height:3px;background:var(--panel2)}
+.progress > i{display:block;height:100%;background:var(--iron);transition:width .35s ease}
+
+/* ---------- ironbow signature meter ---------- */
+.meter{margin:14px 0 6px}
+.meter .scale{position:relative;height:16px;border-radius:2px;background:var(--iron)}
+.meter .pin{position:absolute;top:-6px;width:3px;height:28px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.6);transition:left .3s ease}
+.meter .ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:6px}
+
+/* ---------- cards ---------- */
+main{padding:12px 16px 8px;max-width:720px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:10px;width:100%;text-align:left;display:block}
+button.card{cursor:pointer}
+.card .top{display:flex;align-items:center;gap:10px}
+.id{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#FF8A3D}
+.name{font-family:var(--disp);font-size:21px;font-weight:600;line-height:1.15;margin:2px 0 0}
+.loc{font-size:13px;color:var(--dim)}
+.chip{margin-left:auto;font-family:var(--disp);font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;border-radius:2px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.chip.ok{color:var(--ok);border-color:#1c6c53}
+.chip.watch{color:var(--watch);border-color:#7a5c17}
+.chip.crit{color:#fff;background:var(--crit);border-color:var(--crit)}
+.last{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:8px}
+
+.sectionlabel{font-family:var(--disp);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:20px 2px 8px}
+
+/* ---------- specs grid ---------- */
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin:12px 0}
+.specs div{background:var(--panel2);padding:9px 11px}
+.specs .k{font-family:var(--disp);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.specs .v{font-family:var(--mono);font-size:16px;margin-top:1px}
+.tip{background:var(--panel2);border-left:3px solid #FF6A00;padding:10px 12px;font-size:14px;border-radius:0 4px 4px 0}
+
+/* ---------- form ---------- */
+label{display:block;font-family:var(--disp);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:14px 0 5px}
+input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:13px;font-family:var(--mono);min-height:52px}
+textarea{font-family:var(--body);min-height:76px}
+.row{display:flex;gap:10px}
+.row > *{flex:1}
+.readout{display:flex;align-items:baseline;gap:8px;font-family:var(--mono);margin-top:16px}
+.readout b{font-size:38px;font-weight:600;letter-spacing:-.02em}
+.readout span{font-size:13px;color:var(--dim)}
+.verdict{font-family:var(--disp);font-size:15px;letter-spacing:.14em;text-transform:uppercase;margin-left:auto}
+
+/* ---------- buttons ---------- */
+.btn{display:block;width:100%;min-height:58px;border:0;border-radius:4px;background:#FF6A00;color:#140800;font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:16px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+.btn.sm{min-height:48px;font-size:15px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(11,14,19,0),rgba(11,14,19,.97) 22%);display:flex;gap:10px;max-width:720px;margin:0 auto}
+.bar .btn{margin:0}
+.tabs{display:flex;gap:0;border:1px solid var(--line);border-radius:4px;overflow:hidden;margin:0 16px}
+.tabs button{flex:1;background:transparent;border:0;padding:11px 4px;font-family:var(--disp);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--panel2);color:var(--txt)}
+
+/* ---------- scanner ---------- */
+#scanwrap{position:fixed;inset:0;z-index:50;background:#000;display:none;flex-direction:column}
+#scanwrap.on{display:flex}
+#cam{flex:1;width:100%;object-fit:cover;background:#000}
+.reticle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64vw;max-width:280px;aspect-ratio:1;border:2px solid rgba(255,255,255,.85);border-radius:6px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+.scanfoot{padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:#0B0E13;border-top:1px solid var(--line)}
+.scanhint{font-size:14px;color:var(--dim);margin:0 0 10px;text-align:center}
+
+.note{font-size:13px;color:var(--dim);margin:10px 2px}
+.qrgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qrcell{background:#fff;color:#000;border-radius:4px;padding:10px;text-align:center}
+.qrcell img{width:100%;display:block;background:#fff;min-height:60px}
+.qrcell .qid{font-family:var(--mono);font-size:13px;font-weight:600;margin-top:6px;word-break:break-all}
+.qrcell .qnm{font-family:var(--body);font-size:11px;color:#444;line-height:1.2}
+.hide{display:none}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+@media print{
+  header,.bar,.noprint,#scanwrap,.note{display:none!important}
+  html,body{background:#fff;color:#000;padding:0}
+  main{padding:0;max-width:none}
+  .qrgrid{grid-template-columns:1fr 1fr 1fr;gap:8mm}
+  .qrcell{border:1px dashed #999;padding:6mm;page-break-inside:avoid}
+  .qrcell .qnm{color:#000}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <div>
+      <div class="brand">bcb Ingeniería · i35</div>
+      <h1 class="route" id="routeName">Ruta eléctrica — Nave 2</h1>
+    </div>
+    <div class="count" id="counter">0/0</div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabRuta" aria-selected="true" onclick="go('ruta')">Ruta</button>
+    <button role="tab" id="tabEtiq" aria-selected="false" onclick="go('etiquetas')">Etiquetas</button>
+    <button role="tab" id="tabExp" aria-selected="false" onclick="go('exportar')">Entregar</button>
+  </div>
+  <div class="progress"><i id="bar" style="width:0%"></i></div>
+</header>
+
+<main>
+  <!-- ============ RUTA ============ -->
+  <section id="v-ruta"></section>
+
+  <!-- ============ ACTIVO ============ -->
+  <section id="v-activo" class="hide"></section>
+
+  <!-- ============ ETIQUETAS ============ -->
+  <section id="v-etiquetas" class="hide">
+    <p class="note">Muestra estos códigos en una pantalla o imprímelos y pégalos en el equipo. Escanea uno desde la ruta y la cámara abre ese activo con emisividad, distancia y límites ya cargados.</p>
+    <button class="btn sm ghost noprint" onclick="window.print()">Imprimir etiquetas</button>
+    <div class="qrgrid" id="qrgrid"></div>
+  </section>
+
+  <!-- ============ EXPORTAR ============ -->
+  <section id="v-exportar" class="hide">
+    <div class="card">
+      <div class="sectionlabel" style="margin-top:0">Resumen del recorrido</div>
+      <div id="resumen"></div>
+      <button class="btn sm" onclick="compartir()">Compartir resumen</button>
+      <button class="btn sm ghost" onclick="descargarCSV()">Descargar CSV</button>
+    </div>
+    <div class="card">
+      <div class="sectionlabel" style="margin-top:0">Agregar activo en campo</div>
+      <label for="nId">Código (lo que dirá el QR)</label>
+      <input id="nId" placeholder="TAB-09">
+      <label for="nNombre">Nombre</label>
+      <input id="nNombre" placeholder="Tablero CCM-4, celda 2" style="font-family:var(--body)">
+      <label for="nUbic">Ubicación</label>
+      <input id="nUbic" placeholder="Nave 3" style="font-family:var(--body)">
+      <button class="btn sm ghost" onclick="agregarActivo()">Agregar a la ruta</button>
+    </div>
+  </section>
+</main>
+
+<div class="bar" id="actionbar">
+  <button class="btn" onclick="abrirScanner()">Abrir activo</button>
+</div>
+
+<!-- ============ IDENTIFICAR ACTIVO (sin getUserMedia) ============ -->
+<div id="scanwrap" aria-hidden="true">
+  <div class="scanfoot" style="margin-top:auto">
+    <p class="scanhint" id="scanhint">La app no toma el sensor: la foto la hace la app nativa de la c&aacute;mara y regresa aqu&iacute;.</p>
+
+    <label for="manual" style="margin-top:0">C&oacute;digo del activo</label>
+    <div class="row">
+      <input id="manual" placeholder="CLI-01" style="font-family:var(--mono)" onkeydown="if(event.key==='Enter')buscarManual()">
+      <button class="btn sm" style="margin:0;flex:0 0 34%" onclick="buscarManual()">Abrir</button>
+    </div>
+
+    <button class="btn sm ghost" onclick="document.getElementById('qrshot').click()">Leer QR con la c&aacute;mara nativa</button>
+    <input id="qrshot" type="file" accept="image/*" capture="environment" class="hide" onchange="leerQRdeFoto(this)">
+
+    <button class="btn sm ghost" onclick="lanzarNativa()">Abrir app de c&aacute;mara</button>
+    <button class="btn sm ghost" onclick="cerrarScanner()">Cancelar</button>
+    <p class="note" id="scanmsg"></p>
+  </div>
+</div>
+
+<canvas id="work" class="hide"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" onerror="window.__nojsqr=1"></script>
+<script>
+/* =======================================================================
+   Ruta Térmica — registro de inspección guiado por QR para FLIR i35 (ACE)
+   No toca el SDK: la térmica se captura con la app nativa de la cámara,
+   esta app lleva la ruta, los parámetros de medición y el registro.
+   ======================================================================= */
+
+/* Ruta de prueba en oficina. Cada activo define qué medir y con qué parámetros.
+   modo "max"      → caliente es falla (ΔT alto = crítico). lim: {watch, crit}
+   modo "min"      → se espera ΔT alto (equipo de frío). lim: {watch, crit} con crit < watch
+   modo "registro" → solo documenta, sin criterio de severidad                        */
+const DEMO = [
+  {id:"CLI-01", nombre:"Minisplit — salto térmico", ubic:"Oficina", emis:0.94, dist:1.0, modo:"min",
+   encuadre:"Rejilla de retorno y de suministro en el mismo cuadro. T máx = retorno (aire que entra), T ref = suministro (aire que sale). Un equipo sano da 8 K o más.",
+   lim:{watch:8, crit:5}, ult:null},
+
+  {id:"MUL-01", nombre:"Multicontacto con carga", ubic:"Escritorio", emis:0.95, dist:0.5, modo:"max",
+   encuadre:"T máx = la clavija más caliente. T ref = una clavija idéntica sin uso, en el mismo cuadro. Anota el % de carga estimado.",
+   lim:{watch:3, crit:15}, ult:null},
+
+  {id:"CAR-01", nombre:"Fuente de la laptop bajo carga", ubic:"Escritorio", emis:0.95, dist:0.4, modo:"max",
+   encuadre:"Ponla a cargar con la máquina trabajando 10 min antes de medir. T ref = aire ambiente.",
+   lim:{watch:20, crit:35}, ult:null},
+
+  {id:"TAB-01", nombre:"Centro de carga de la oficina", ubic:"Pasillo", emis:0.95, dist:1.2, modo:"max",
+   encuadre:"Tapa quitada solo si está permitido; si no, mide la tapa y la acometida. T máx = pastilla más caliente, T ref = otra pastilla con carga similar.",
+   lim:{watch:3, crit:15}, ult:null},
+
+  {id:"LUM-01", nombre:"Luminaria LED del plafón", ubic:"Oficina", emis:0.92, dist:2.5, modo:"max",
+   encuadre:"Compara contra la luminaria gemela de al lado: T máx en la que se ve más caliente, T ref en la vecina. Diferencias grandes = driver degradado.",
+   lim:{watch:5, crit:15}, ult:null},
+
+  {id:"REF-01", nombre:"Condensador del frigobar", ubic:"Cocineta", emis:0.90, dist:0.6, modo:"max",
+   encuadre:"Serpentín de atrás con el compresor trabajando. T ref = ambiente. Si el serpentín está sucio, el ΔT se dispara.",
+   lim:{watch:20, crit:35}, ult:null},
+
+  {id:"EMI-01", nombre:"Prueba de emisividad", ubic:"Escritorio", emis:0.95, dist:0.3, modo:"registro",
+   encuadre:"Pega un cuadro de cinta de aislar negra en algo metálico brillante y caliéntalo tibio. T máx = sobre la cinta (ε real 0.95), T ref = el metal desnudo al lado. La diferencia que veas es puro error de emisividad, no temperatura.",
+   lim:{watch:3, crit:15}, ult:null},
+
+  {id:"AGU-01", nombre:"Vaso con agua fría — rango", ubic:"Escritorio", emis:0.96, dist:0.3, modo:"registro",
+   encuadre:"Verifica que la cámara resuelve por debajo del ambiente. T máx = pared del vaso, T ref = la mesa. El ΔT sale negativo y eso está bien.",
+   lim:{watch:3, crit:15}, ult:null}
+];
+
+let S = { activos: DEMO.map(a=>({...a})), lecturas: {}, abierto:null, vista:"ruta" };
+
+/* ---- persistencia opcional (window.storage si existe; si no, en memoria) ---- */
+async function guardar(){
+  try{ if(window.storage) await window.storage.set('ruta-i35', JSON.stringify({activos:S.activos, lecturas:S.lecturas})); }catch(e){}
+}
+async function cargar(){
+  try{
+    if(!window.storage) return;
+    const r = await window.storage.get('ruta-i35');
+    if(r && r.value){ const d = JSON.parse(r.value); if(d.activos) S.activos = d.activos; if(d.lecturas) S.lecturas = d.lecturas; }
+  }catch(e){}
+}
+
+/* ---- severidad (criterio de referencia tipo NETA, editable por activo) ---- */
+function severidad(dt, a){
+  if(dt === null || isNaN(dt)) return {k:"", t:"Pendiente"};
+  if(a.modo === "registro") return {k:"ok", t:"Registrado"};
+  if(a.modo === "min"){
+    if(dt <= a.lim.crit) return {k:"crit", t:"Crítico"};
+    if(dt <= a.lim.watch) return {k:"watch", t:"Vigilar"};
+    return {k:"ok", t:"Normal"};
+  }
+  if(dt >= a.lim.crit) return {k:"crit", t:"Crítico"};
+  if(dt >= a.lim.watch) return {k:"watch", t:"Vigilar"};
+  return {k:"ok", t:"Normal"};
+}
+const topEscala = a => (a.modo === "min" ? a.lim.watch*1.8 : a.lim.crit*1.6);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---- navegación ---- */
+function go(v){
+  S.vista = v; S.abierto = (v==="activo") ? S.abierto : null;
+  ["ruta","activo","etiquetas","exportar"].forEach(x=>{
+    document.getElementById("v-"+x).classList.toggle("hide", x!==v);
+  });
+  document.getElementById("tabRuta").setAttribute("aria-selected", v==="ruta"||v==="activo");
+  document.getElementById("tabEtiq").setAttribute("aria-selected", v==="etiquetas");
+  document.getElementById("tabExp").setAttribute("aria-selected", v==="exportar");
+  document.getElementById("actionbar").style.display = (v==="activo") ? "none" : "flex";
+  window.scrollTo(0,0);
+  if(v==="ruta") pintarRuta();
+  if(v==="etiquetas") pintarEtiquetas();
+  if(v==="exportar") pintarResumen();
+}
+
+/* ---- vista ruta ---- */
+function pintarRuta(){
+  const hechas = Object.keys(S.lecturas).length, total = S.activos.length;
+  document.getElementById("counter").textContent = hechas+"/"+total;
+  document.getElementById("bar").style.width = (total? hechas/total*100 : 0)+"%";
+  let html = '<div class="sectionlabel" style="margin-top:6px">Puntos de la ruta</div>';
+  S.activos.forEach(a=>{
+    const L = S.lecturas[a.id];
+    const sv = severidad(L ? L.dt : null, a);
+    html += `<button class="card" onclick="abrirActivo('${a.id}')">
+      <div class="top">
+        <div>
+          <div class="id">${esc(a.id)}</div>
+          <div class="name">${esc(a.nombre)}</div>
+          <div class="loc">${esc(a.ubic)}</div>
+        </div>
+        <div class="chip ${sv.k}">${sv.t}</div>
+      </div>
+      ${L ? `<div class="last">Hoy · ${L.tmax.toFixed(1)}&nbsp;°C · ΔT ${L.dt.toFixed(1)}&nbsp;K</div>`
+          : a.ult ? `<div class="last">Última: ${esc(a.ult.fecha)} · ${a.ult.tmax.toFixed(1)}&nbsp;°C · ΔT ${a.ult.dt.toFixed(1)}&nbsp;K</div>`
+          : `<div class="last">Sin línea base</div>`}
+    </button>`;
+  });
+  document.getElementById("v-ruta").innerHTML = html;
+}
+
+/* ---- vista activo ---- */
+function abrirActivo(id){
+  const a = S.activos.find(x=>x.id===id);
+  if(!a){ alert("Ese código no está en la ruta: "+id); return; }
+  S.abierto = id;
+  adjuntoTmp = null;
+  const L = S.lecturas[id] || {};
+  document.getElementById("v-activo").innerHTML = `
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="id">${esc(a.id)}</div>
+          <div class="name">${esc(a.nombre)}</div>
+          <div class="loc">${esc(a.ubic)}</div>
+        </div>
+      </div>
+      <div class="specs">
+        <div><div class="k">Emisividad</div><div class="v">${a.emis.toFixed(2)}</div></div>
+        <div><div class="k">Distancia</div><div class="v">${a.dist.toFixed(1)} m</div></div>
+        ${a.modo==="registro"
+          ? `<div><div class="k">Criterio</div><div class="v">—</div></div><div><div class="k">Modo</div><div class="v">registro</div></div>`
+          : a.modo==="min"
+          ? `<div><div class="k">ΔT mínimo sano</div><div class="v">${a.lim.watch} K</div></div><div><div class="k">ΔT crítico</div><div class="v">≤ ${a.lim.crit} K</div></div>`
+          : `<div><div class="k">ΔT vigilar</div><div class="v">${a.lim.watch} K</div></div><div><div class="k">ΔT crítico</div><div class="v">${a.lim.crit} K</div></div>`}
+      </div>
+      <div class="tip">${esc(a.encuadre)}</div>
+      ${a.ult ? `<div class="last">Línea base ${esc(a.ult.fecha)}: ${a.ult.tmax.toFixed(1)} °C, ΔT ${a.ult.dt.toFixed(1)} K</div>` : `<div class="last">Sin línea base — esta lectura será la referencia.</div>`}
+    </div>
+
+    <div class="card">
+      <div class="sectionlabel" style="margin-top:0">Lectura de hoy</div>
+      <div class="row">
+        <div><label for="tmax">T máx (°C)</label><input id="tmax" type="number" inputmode="decimal" step="0.1" value="${L.tmax??""}" oninput="calcular()"></div>
+        <div><label for="tref">T referencia (°C)</label><input id="tref" type="number" inputmode="decimal" step="0.1" value="${L.tref??""}" oninput="calcular()"></div>
+      </div>
+      <label for="carga">Carga (%)</label>
+      <input id="carga" type="number" inputmode="numeric" step="1" value="${L.carga??""}">
+
+      <div class="readout">
+        <b id="dtOut">—</b><span>ΔT en K</span>
+        <div class="verdict" id="vOut">Pendiente</div>
+      </div>
+      <div class="meter">
+        <div class="scale"><i class="pin" id="pin" style="left:0%"></i></div>
+        <div class="ticks">${a.modo==="registro" ? `<span>0</span><span>solo registro, sin criterio</span><span>${Math.round(topEscala(a))}</span>` : a.modo==="min" ? `<span>0</span><span>${a.lim.crit} crítico</span><span>${a.lim.watch} mínimo sano</span><span>${Math.round(topEscala(a))}</span>` : `<span>0</span><span>${a.lim.watch} vigilar</span><span>${a.lim.crit} crítico</span><span>${Math.round(topEscala(a))}</span>`}</div>
+      </div>
+
+      <label>Captura hecha en la app nativa</label>
+      <button class="btn sm ghost" style="margin-top:0" onclick="document.getElementById('adjFile').click()">Tomar o elegir la imagen t&eacute;rmica</button>
+      <input id="adjFile" type="file" accept="image/*,.jpg,.jpeg,.png,.seq,.csq,.fff,.ats" capture="environment" class="hide" onchange="adjuntar(this)">
+      <div id="adjInfo">${L.adj ? `<div class="last">Adjunto: ${esc(L.adj)}</div>` : ``}</div>
+
+      <label for="nota">Nota</label>
+      <textarea id="nota" placeholder="Qué viste, qué falta, número de imagen guardada en la cámara">${esc(L.nota||"")}</textarea>
+      <button class="btn" onclick="guardarLectura()">Guardar y volver a la ruta</button>
+      <button class="btn ghost sm" onclick="go('ruta')">Cancelar</button>
+    </div>`;
+  go("activo");
+  calcular();
+  const f = document.getElementById("tmax"); if(f && !L.tmax) f.focus();
+}
+
+function calcular(){
+  const a = S.activos.find(x=>x.id===S.abierto); if(!a) return;
+  const tmax = parseFloat(document.getElementById("tmax").value);
+  const tref = parseFloat(document.getElementById("tref").value);
+  const dt = (isNaN(tmax)||isNaN(tref)) ? null : tmax-tref;
+  const sv = severidad(dt, a);
+  document.getElementById("dtOut").textContent = dt===null ? "—" : dt.toFixed(1);
+  const v = document.getElementById("vOut");
+  v.textContent = sv.t;
+  v.style.color = sv.k==="crit"?"var(--crit)":sv.k==="watch"?"var(--watch)":sv.k==="ok"?"var(--ok)":"var(--dim)";
+  const top = topEscala(a);
+  const pct = dt===null ? 0 : Math.max(0, Math.min(100, dt/top*100));
+  document.getElementById("pin").style.left = pct+"%";
+}
+
+function guardarLectura(){
+  const a = S.activos.find(x=>x.id===S.abierto); if(!a) return;
+  const tmax = parseFloat(document.getElementById("tmax").value);
+  const tref = parseFloat(document.getElementById("tref").value);
+  if(isNaN(tmax)||isNaN(tref)){ alert("Faltan T máx y T referencia para calcular el ΔT."); return; }
+  S.lecturas[a.id] = {
+    tmax, tref, dt: tmax-tref,
+    carga: document.getElementById("carga").value,
+    nota: document.getElementById("nota").value,
+    adj: adjuntoTmp ? adjuntoTmp.nombre : (S.lecturas[a.id] && S.lecturas[a.id].adj) || "",
+    hora: new Date().toISOString()
+  };
+  adjuntoTmp = null;
+  guardar();
+  go("ruta");
+}
+
+/* ---- etiquetas ---- */
+function pintarEtiquetas(){
+  document.getElementById("qrgrid").innerHTML = S.activos.map(a=>{
+    const u = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data="+encodeURIComponent(a.id);
+    return `<div class="qrcell">
+      <img src="${u}" alt="Código ${esc(a.id)}" onerror="this.style.display='none'">
+      <div class="qid">${esc(a.id)}</div>
+      <div class="qnm">${esc(a.nombre)}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---- resumen / entrega ---- */
+function filas(){
+  return S.activos.filter(a=>S.lecturas[a.id]).map(a=>{
+    const L = S.lecturas[a.id];
+    return {a, L, sv: severidad(L.dt, a)};
+  });
+}
+function pintarResumen(){
+  const f = filas();
+  if(!f.length){ document.getElementById("resumen").innerHTML = '<p class="note">Aún no hay lecturas. Escanea el primer activo y guarda su medición.</p>'; return; }
+  const crit = f.filter(x=>x.sv.k==="crit").length, wat = f.filter(x=>x.sv.k==="watch").length;
+  document.getElementById("resumen").innerHTML =
+    `<div class="readout"><b>${f.length}</b><span>puntos medidos</span>
+       <div class="verdict" style="color:${crit?'var(--crit)':wat?'var(--watch)':'var(--ok)'}">${crit?crit+" crítico":wat?wat+" a vigilar":"todo normal"}</div>
+     </div>` +
+    f.map(x=>`<div class="last" style="border-top:1px solid var(--line);padding-top:8px">
+        <span class="id">${esc(x.a.id)}</span> · ${x.L.tmax.toFixed(1)} °C · ΔT ${x.L.dt.toFixed(1)} K ·
+        <span style="color:${x.sv.k==='crit'?'var(--crit)':x.sv.k==='watch'?'var(--watch)':'var(--ok)'}">${x.sv.t}</span>
+      </div>`).join("");
+}
+function textoResumen(){
+  const f = filas();
+  return "Ruta térmica — " + document.getElementById("routeName").textContent + "\n" +
+    new Date().toLocaleString("es-MX") + "\n\n" +
+    f.map(x=>`${x.a.id} ${x.a.nombre}: ${x.L.tmax.toFixed(1)}°C, ΔT ${x.L.dt.toFixed(1)}K, carga ${x.L.carga||"n/d"}% → ${x.sv.t}${x.L.nota?" ("+x.L.nota+")":""}`).join("\n");
+}
+async function compartir(){
+  const t = textoResumen();
+  try{
+    if(navigator.share){ await navigator.share({title:"Ruta térmica", text:t}); return; }
+    await navigator.clipboard.writeText(t); alert("Resumen copiado. Pégalo en el correo o WhatsApp.");
+  }catch(e){ alert(t); }
+}
+function descargarCSV(){
+  const head = "codigo,activo,ubicacion,fecha_hora,emisividad,distancia_m,t_max_c,t_ref_c,delta_t_k,carga_pct,severidad,archivo_camara,nota\n";
+  const body = filas().map(x=>[x.a.id,x.a.nombre,x.a.ubic,x.L.hora,x.a.emis,x.a.dist,x.L.tmax,x.L.tref,x.L.dt.toFixed(1),x.L.carga,x.sv.t,x.L.adj||"",(x.L.nota||"").replace(/\n/g," ")]
+    .map(v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const url = URL.createObjectURL(new Blob([head+body],{type:"text/csv;charset=utf-8"}));
+  const link = document.createElement("a");
+  link.href = url; link.download = "ruta-termica-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function agregarActivo(){
+  const id = document.getElementById("nId").value.trim().toUpperCase();
+  if(!id){ alert("Falta el código."); return; }
+  if(S.activos.some(a=>a.id===id)){ alert("Ese código ya está en la ruta."); return; }
+  S.activos.push({id, nombre:document.getElementById("nNombre").value.trim()||id, ubic:document.getElementById("nUbic").value.trim()||"Sin ubicación",
+    emis:0.95, dist:1.5, encuadre:"Activo agregado en campo. Ajusta emisividad y distancia en la cámara antes de medir.", lim:{watch:3,crit:15}, ult:null});
+  document.getElementById("nId").value=""; document.getElementById("nNombre").value=""; document.getElementById("nUbic").value="";
+  guardar(); go("ruta");
+}
+
+/* ---- identificaci&oacute;n del activo, delegando en la app nativa -------------
+   La i35 no expone el sensor t&eacute;rmico al navegador (no es un CameraDevice
+   RGB est&aacute;ndar, el dato es radiom&eacute;trico), as&iacute; que la app NO pide
+   getUserMedia. En su lugar:
+     - el c&oacute;digo se teclea, o
+     - se dispara la app de c&aacute;mara nativa con <input capture>, y la foto
+       que regresa se decodifica aqu&iacute; con jsQR.
+   La t&eacute;rmica se captura en la app nativa y se adjunta a la lectura.  */
+
+function abrirScanner(){
+  const wrap = document.getElementById("scanwrap");
+  wrap.classList.add("on"); wrap.setAttribute("aria-hidden","false");
+  document.getElementById("scanmsg").textContent = "";
+  setTimeout(()=>document.getElementById("manual").focus(), 150);
+}
+function cerrarScanner(){
+  const wrap = document.getElementById("scanwrap");
+  wrap.classList.remove("on"); wrap.setAttribute("aria-hidden","true");
+}
+function buscarManual(){
+  const v = document.getElementById("manual").value.trim().toUpperCase();
+  if(!v) return;
+  document.getElementById("manual").value = "";
+  cerrarScanner(); abrirActivo(v);
+}
+
+/* Dispara la app de c&aacute;mara del sistema. En ACE suele ser la app t&eacute;rmica. */
+function lanzarNativa(){
+  const msg = document.getElementById("scanmsg");
+  const intents = [
+    "intent://#Intent;action=android.media.action.STILL_IMAGE_CAMERA;end",
+    "intent://#Intent;action=android.media.action.IMAGE_CAPTURE;end"
+  ];
+  msg.textContent = "Si no abre, usa el bot&oacute;n de arriba: ese s&iacute; llama a la app de c&aacute;mara.";
+  try{ window.location.href = intents[0]; }
+  catch(e){ try{ window.location.href = intents[1]; }catch(e2){} }
+}
+
+/* Decodifica el QR desde una foto tomada por la app nativa. */
+function leerQRdeFoto(input){
+  const msg = document.getElementById("scanmsg");
+  const f = input.files && input.files[0];
+  input.value = "";
+  if(!f) return;
+  if(!window.jsQR || window.__nojsqr){ msg.textContent = "No carg&oacute; el lector de QR (sin internet). Teclea el c&oacute;digo."; return; }
+  msg.textContent = "Leyendo la foto...";
+  const img = new Image();
+  img.onload = ()=>{
+    const c = document.getElementById("work"), x = c.getContext("2d");
+    const max = 1400;
+    const k = Math.min(1, max/Math.max(img.width, img.height));
+    c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+    x.drawImage(img, 0, 0, c.width, c.height);
+    let r = null;
+    try{
+      const d = x.getImageData(0,0,c.width,c.height);
+      r = window.jsQR(d.data, d.width, d.height);
+    }catch(e){}
+    URL.revokeObjectURL(img.src);
+    if(r && r.data){
+      if(navigator.vibrate) navigator.vibrate(60);
+      cerrarScanner(); abrirActivo(String(r.data).trim().toUpperCase());
+    } else {
+      msg.textContent = "No se ley&oacute; ning&uacute;n QR en esa foto. Acerca m&aacute;s el c&oacute;digo o teclea el c&oacute;digo.";
+    }
+  };
+  img.onerror = ()=>{ msg.textContent = "Ese archivo no es una imagen que el navegador pueda abrir (puede ser radiom&eacute;trico). Teclea el c&oacute;digo."; };
+  img.src = URL.createObjectURL(f);
+}
+
+/* ---- adjuntar la captura hecha en la app nativa a la lectura ---- */
+let adjuntoTmp = null;
+function adjuntar(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  adjuntoTmp = {nombre:f.name, tam:f.size};
+  const box = document.getElementById("adjInfo");
+  const esImagen = /^image\//.test(f.type);
+  box.innerHTML = `<div class="last">Adjunto: ${esc(f.name)}${esImagen?"":" (formato radiom&eacute;trico: se registra el nombre, sin vista previa)"}</div>`;
+  if(esImagen){
+    const u = URL.createObjectURL(f);
+    box.innerHTML += `<img src="${u}" alt="Captura adjunta" style="width:100%;border-radius:4px;margin-top:8px;border:1px solid var(--line)">`;
+  }
+}
+
+/* ---- arranque ---- */
+(async ()=>{ await cargar(); go("ruta"); })();
+</script>
+</body>
+</html>
